@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 final _firestore = FirebaseFirestore.instance;
+late User signedInUser; // this will give us the email
 
 class ChatScreen extends StatefulWidget {
   static const String screenRoute = 'chat_screen';
@@ -16,7 +17,6 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final messageTextController = TextEditingController();
   final _auth = FirebaseAuth.instance;
-  late User signedInUser; // this will give us the email
   String? messageText; // this will give us the message
   @override
   void initState() {
@@ -136,48 +136,6 @@ for ( var message in messages.docs) {
   }
 }
 
-class MessageLine extends StatelessWidget {
-  const MessageLine({this.text, this.sender, super.key});
-  final String? sender;
-  final String? text;
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            '$sender',
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.black45,
-            ),
-          ),
-          Material(
-            elevation: 5,
-            borderRadius: BorderRadius.circular(30),
-            color: Colors.blue[800],
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 10,
-              ),
-              child: Text(
-                '$text',
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class MessageStreamBuilder extends StatelessWidget {
   const MessageStreamBuilder({super.key});
 
@@ -198,9 +156,16 @@ class MessageStreamBuilder extends StatelessWidget {
         for (var message in messages) {
           final messageText = message.get('text');
           final messageSender = message.get('sender');
+          final currentUser = signedInUser.email;
+
+          if (currentUser == messageSender) {
+            // the code of the message from the signed in user
+          }
+
           final messageWidget = MessageLine(
             sender: messageSender,
             text: messageText,
+            isMe: currentUser == messageSender,
           );
           messageWidgets.add(messageWidget);
         }
@@ -215,6 +180,57 @@ class MessageStreamBuilder extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class MessageLine extends StatelessWidget {
+  const MessageLine({required this.isMe, this.text, this.sender, super.key});
+  final String? sender;
+  final String? text;
+  final bool isMe;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Column(
+        crossAxisAlignment:
+            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$sender',
+            style: TextStyle(fontSize: 12, color: Colors.yellow[900]),
+          ),
+          Material(
+            elevation: 5,
+            borderRadius: isMe
+                ? const BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
+                    topLeft: Radius.circular(30),
+                  )
+                : const BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
+            color: isMe ? Colors.blue[800] : Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 10,
+              ),
+              child: Text(
+                '$text',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: isMe ? Colors.white : Colors.black45,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
