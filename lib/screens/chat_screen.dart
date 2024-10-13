@@ -42,13 +42,13 @@ for ( var message in messages.docs) {
 }
 } */
 
-  void messageStreams() async {
+/*   void messageStreams() async {
     await for (var snapshot in _firestore.collection('messages').snapshots()) {
       for (var message in snapshot.docs) {
         print(message.data());
       }
     }
-  }
+  } */
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +115,7 @@ for ( var message in messages.docs) {
                       _firestore.collection('messages').add({
                         'text': messageText,
                         'sender': signedInUser.email,
+                        'time': FieldValue.serverTimestamp(),
                       });
                     },
                     child: Text(
@@ -142,7 +143,7 @@ class MessageStreamBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: _firestore.collection('messages').snapshots(),
+      stream: _firestore.collection('messages').orderBy('time').snapshots(),
       builder: (context, snapshot) {
         List<MessageLine> messageWidgets = [];
         if (!snapshot.hasData) {
@@ -152,7 +153,7 @@ class MessageStreamBuilder extends StatelessWidget {
             ),
           );
         }
-        final messages = snapshot.data!.docs;
+        final messages = snapshot.data!.docs.reversed;
         for (var message in messages) {
           final messageText = message.get('text');
           final messageSender = message.get('sender');
@@ -172,6 +173,7 @@ class MessageStreamBuilder extends StatelessWidget {
 
         return Expanded(
           child: ListView(
+            reverse: true,
             padding: const EdgeInsets.symmetric(
               horizontal: 10,
               vertical: 20,
