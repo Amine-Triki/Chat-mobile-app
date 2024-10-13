@@ -78,7 +78,30 @@ for ( var message in messages.docs) {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(),
+            StreamBuilder<QuerySnapshot>(
+              stream: _firestore.collection('messages').snapshots(),
+              builder: (context, snapshot) {
+                List<Text> messageWidgets = [];
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      backgroundColor: Colors.blue,
+                    ),
+                  );
+                }
+                final messages = snapshot.data!.docs;
+                for (var message in messages) {
+                  final messageText = message.get('text');
+                  final messageSender = message.get('sender');
+                  final messageWidget = Text('$messageText - $messageSender');
+                  messageWidgets.add(messageWidget);
+                }
+
+                return Column(
+                  children: messageWidgets,
+                );
+              },
+            ),
             Container(
               decoration: const BoxDecoration(
                 border: Border(
