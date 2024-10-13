@@ -1,5 +1,7 @@
+import 'package:chat_mobile_app/screens/chat_screen.dart';
 import 'package:chat_mobile_app/widgets/my_button.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegistrationScreen extends StatefulWidget {
   static const String screenRoute = 'registration_screen';
@@ -11,6 +13,11 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  final _auth = FirebaseAuth.instance;
+
+  late String email;
+  late String password;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,7 +28,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
+            SizedBox(
               height: 180,
               child: Image.asset('images/logo.png'),
             ),
@@ -29,8 +36,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               height: 50,
             ),
             TextField(
+              keyboardType: TextInputType.emailAddress,
               textAlign: TextAlign.center,
-              onChanged: (value) {},
+              onChanged: (value) {
+                email = value;
+              },
               decoration: const InputDecoration(
                 hintText: 'Enter your Email',
                 contentPadding: EdgeInsets.symmetric(
@@ -64,8 +74,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ),
             const SizedBox(height: 8),
             TextField(
+              obscureText: true,
               textAlign: TextAlign.center,
-              onChanged: (value) {},
+              onChanged: (value) {
+                password = value;
+              },
               decoration: const InputDecoration(
                 hintText: 'Enter your Password',
                 contentPadding: EdgeInsets.symmetric(
@@ -101,7 +114,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             MyButton(
               color: Colors.blue[800]!,
               title: 'register',
-              onPressed: () {},
+              onPressed: () async {
+                try {
+                  final newUser = await _auth.createUserWithEmailAndPassword(
+                      email: email, password: password);
+                      Navigator.pushNamed(context, ChatScreen.screenRoute);
+                } catch (e) {
+                  print(e);
+                }
+              },
             )
           ],
         ),
